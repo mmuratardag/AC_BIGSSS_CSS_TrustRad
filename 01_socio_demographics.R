@@ -104,3 +104,29 @@ exm
 save.image(file = "env/baseline_model.RData")
 
 h2o.shutdown()
+
+# post-hoc eda ------------------------------------------------------------
+
+load("df/data.RData")
+
+ntile_na <- function(var, ntile_n) {
+  notna <- !is.na(var)
+  out <- rep(NA_real_,length(var))
+  out[notna] <- ntile(var[notna],ntile_n)
+  return(out)
+}
+
+df$age_bin <- ntile_na(df$age, 2)
+
+df$age_bin <- factor(df$age_bin, levels = 1:2, labels = c("<median", ">median"))
+table(df$age_bin)
+
+df %>% ggplot(aes(x = tp1)) + geom_bar(aes(fill = age_bin)) + theme_bw()
+
+df %>% select(-age) %>% visualize_pps(do_parallel = TRUE) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+df %>% select(-age) %>% drop_na() %>% binarize() %>%
+  correlate(target = tp1__Most_People_Can_Be_Trusted) %>%
+  plot_correlation_funnel() +
+  geom_point(size = 3, color = "#2c3e50")
