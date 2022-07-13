@@ -7,7 +7,8 @@ colnames(df)
 
 df <- df %>% naniar::replace_with_na(replace = list(age = c(6:16,
                                                             75:115)))
-df %>% select(age) %>% skimr::skim()
+
+# mid-age > 45
 
 table(df$race)
 df$race <- fct_collapse(df$race,
@@ -50,6 +51,9 @@ df$religiosity <- fct_collapse(df$religiosity,
 table(df$religiosity)
 
 df %>% skimr::skim()
+
+df %>% mutate(across(where(is.factor), as.numeric)) %>%
+  correlation::correlation()
 
 library(ppsr)
 library(correlationfunnel)
@@ -121,3 +125,5 @@ exm
 save.image(file = "env/baseline_model_bin.RData")
 
 h2o.shutdown()
+
+
