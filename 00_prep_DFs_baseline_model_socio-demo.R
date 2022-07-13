@@ -30,6 +30,7 @@ d15 <- read_sav("00_raw_data_sav_files/Race IAT.public.2015.sav") %>% zap_missin
   mutate(across(where(is.character), ~ na_if(.,"")))
 
 save(d15, file = "01_raw_data_RData_files/2015.RData")
+# load("01_raw_data_RData_files/2015.RData")
 
 colnames(d15)
 
@@ -44,18 +45,19 @@ d15 <- d15 %>% mutate(age = year - birthyear) %>%
          tp1,
          gender = sex_5,
          age,
+         occupation = occupation,
          race = raceomb,
          ethnicity = ethnicityomb,
          education = edu,
+         religion = religion2014,
          religiosity = religionid,
          con_lib_self_plc = politicalid_7,
          IAT_D_score = D_biep.White_Good_all,
          pref_whites = att_7,
          tblack, twhite,
-         att,
          all_of(scale_items))
 
-dim(d15) # 24692   445
+dim(d15) # 24692   446
 
 colnames(d15)
 
@@ -105,10 +107,10 @@ d15$education <- factor(d15$education, levels = 1:14,
                                    "OtherAdvancedDegree"))
 
 d15$education <- fct_collapse(d15$education,
-                              Elementary = c("Elementary_School"),
-                              JrHighMiddle = c("JrHighMiddle_School"),
-                              SomeHigh = c("SomeHigh_School"),
-                              HighSchool = c("HighSchool_Grad"),
+                              UniBelow = c("Elementary_School",
+                                           "JrHighMiddle_School",
+                                           "SomeHigh_School",
+                                           "HighSchool_Grad"),
                               UniAbove = c("SomeCollege",
                                            "Associate_Degree",
                                            "BA",
@@ -121,9 +123,6 @@ d15$education <- fct_collapse(d15$education,
                                            "OtherAdvancedDegree"))
 
 table(d15$education)
-# Elementary JrHighMiddle     SomeHigh   HighSchool     UniAbove 
-#          2           15          248          144         1449
-# better collapse even further to uni vs. lower degree
 
 
 # race 2015 ---------------------------------------------------------------
@@ -163,10 +162,67 @@ d15$ethnicity <- factor(d15$ethnicity,
 table(d15$ethnicity)
 
 
+# religion 2015 -----------------------------------------------------------
+
+table(d15$religion)
+d15$religion <- factor(d15$religion,
+                       levels = 1:8,
+                       labels = c("Buddist_Confucian_Shinto",
+                                  "Catholic_Orthodox",
+                                  "Protestant_Other",
+                                  "Hindu",
+                                  "Jewish",
+                                  "Muslim",
+                                  "Not_Religious",
+                                  "Other_Religion"))
+table(d15$religion)
+
+
+# occupation 2015 ---------------------------------------------------------
+
+table(d15$occupation)
+
+d15 <- d15 %>% naniar::replace_with_na(replace = list(occupation = -999))
+d15$occupation <- as_factor(d15$occupation) %>% 
+  fct_collapse(Employed = c("99-0001", "00-0000", "11-0000", "11-2000",
+                            "11-3000", "11-9000", "13-1000", "13-2000",
+                            "15-1000", "15-2000", "17-1000", "17-2000",
+                            "17-3000", "19-1000", "19-2000",
+                            "19-3000", "19-4000", "21-1000", "21-2000",
+                            "23-1000", "23-2000", "25-1000", "25-2000",
+                            "25-3000", "25-4000", "25-9000", "25-9999",
+                            "27-1000", "27-2000", "27-3000", "27-4000",
+                            "29-1000", "29-2000", "31-1000", "31-2000", 
+                            "31-9000", "33-1000", "33-3000", "33-9000",
+                            "35-1000", "35-2000", "35-3000", "35-9000",
+                            "37-1000", "37-3000", "39-3000", "39-5000",
+                            "39-6000",
+                            "39-9000", "41-1000", "41-2000", "41-3000",
+                            "41-4000",
+                            "41-9000", "43-1000", "43-3000", "43-4000",
+                            "43-5000", "43-6000", "43-9000", "45-2000",
+                            "45-4000",
+                            "45-9000", "47-1000", "47-2000", "47-5000",
+                            "49-2000",
+                            "49-3000", "49-9000", "51-1000", "51-2000",
+                            "51-4000", "51-5000", "51-8000", "51-9000",
+                            "53-1000",
+                            "53-2000", "53-3000", "53-4000", "53-6000",
+                            "55-1000",
+                            "55-2000", "55-3000"),
+               Unemployed = c("99-9999"))
+table(d15$occupation)
+
+
 # desc stats 2015 ---------------------------------------------------------
 
-d15 %>% select(tp1, age, gender, education, race, ethnicity,
-               tblack, twhite, att) %>% skimr::skim()
+d15 %>% select(tp1,
+               age, gender, 
+               occupation,
+               education, race, ethnicity,
+               religion, religiosity,
+               con_lib_self_plc,
+               tblack, twhite, pref_whites) %>% skimr::skim()
 
 
 # save & remove 2015 ------------------------------------------------------
@@ -191,13 +247,14 @@ prep_wo_pipe <- function(data_frame_path) {
 
 d16 <- prep_wo_pipe("00_raw_data_sav_files/Race IAT.public.2016.sav")
 
+# load("01_raw_data_RData_files/2016.RData")
+
 colnames(d16)
 
 save(d16, file = "01_raw_data_RData_files/2016.RData")
 
 d16 %>% select(contains(c("tblack", "twhite"))) %>% correlation::correlation()
 d16 %>% select(att, att_7) %>% correlation::correlation()
-
 
 # select variables 2016 ---------------------------------------------------
 
@@ -207,18 +264,19 @@ d16 <- d16 %>% mutate(age = year - birthyear) %>%
          tp1,
          gender = sex_5,
          age,
+         occupation = occupation_self_002,
          race = raceomb,
          ethnicity = ethnicityomb,
          education = edu,
+         religion = religion2014,
          religiosity = religionid,
          con_lib_self_plc = politicalid_7,
          IAT_D_score = D_biep.White_Good_all,
          pref_whites = att_7,
          tblack, twhite,
-         att,
          all_of(scale_items))
 
-dim(d16) # 23966   445
+dim(d16) # 23966   446
 
 colnames(d16)
 
@@ -267,10 +325,10 @@ d16$education <- factor(d16$education, levels = 1:14,
                                    "OtherAdvancedDegree"))
 
 d16$education <- fct_collapse(d16$education,
-                              Elementary = c("Elementary_School"),
-                              JrHighMiddle = c("JrHighMiddle_School"),
-                              SomeHigh = c("SomeHigh_School"),
-                              HighSchool = c("HighSchool_Grad"),
+                              UniBelow = c("Elementary_School",
+                                           "JrHighMiddle_School",
+                                           "SomeHigh_School",
+                                           "HighSchool_Grad"),
                               UniAbove = c("SomeCollege",
                                            "Associate_Degree",
                                            "BA",
@@ -283,9 +341,6 @@ d16$education <- fct_collapse(d16$education,
                                            "OtherAdvancedDegree"))
 
 table(d16$education)
-# Elementary JrHighMiddle     SomeHigh   HighSchool     UniAbove 
-#         19          104          450          371         2291 
-# better collapse here as well
 
 
 # race 2016 ---------------------------------------------------------------
@@ -312,8 +367,6 @@ d16$race <- fct_collapse(d16$race,
 
 table(d16$race)
 
-
-
 # ethnicity 2016 ----------------------------------------------------------
 
 table(d16$ethnicity)
@@ -324,11 +377,43 @@ d16$ethnicity <- factor(d16$ethnicity,
                                    "Unknown"))
 table(d16$ethnicity)
 
+# religion 2016 -----------------------------------------------------------
+
+table(d16$religion)
+d16$religion <- factor(d16$religion,
+                       levels = 1:8,
+                       labels = c("Buddist_Confucian_Shinto",
+                                  "Catholic_Orthodox",
+                                  "Protestant_Other",
+                                  "Hindu",
+                                  "Jewish",
+                                  "Muslim",
+                                  "Not_Religious",
+                                  "Other_Religion"))
+table(d16$religion)
+
+
+
+# employment 2016 ---------------------------------------------------------
+
+d16 <- d16 %>% naniar::replace_with_na(replace = list(occupation = -999))
+d16$occupation <- as_factor(d16$occupation) %>% 
+  fct_collapse(Employed = c("23-", "21-", "11-", "13-", "25-", "15-", "35-",
+                            "41-", "2931", "17-", "55-", "43-", "47-", "27-",
+                            "19-", "39-", "53-", "33-", "49-" ,"00-", "51-",
+                            "45-", "37-"),
+               Unemployed = c("9998"))
+table(d16$occupation)
 
 # desc stats 2016 ---------------------------------------------------------
 
-d16 %>% select(tp1, age, gender, education, race, ethnicity,
-               tblack, twhite, att) %>% skimr::skim()
+d16 %>% select(tp1,
+               age, gender,
+               occupation,
+               education, race, ethnicity, occupation,
+               religion, religiosity,
+               con_lib_self_plc,
+               tblack, twhite, pref_whites) %>% skimr::skim()
 
 d16 %>% arrange(desc(age)) %>% select(age)
 d16 %>% arrange(age) %>% select(age)
@@ -359,6 +444,8 @@ colnames(d17)
 
 save(d17, file = "01_raw_data_RData_files/2017.RData")
 
+# load("01_raw_data_RData_files/2017.RData")
+
 d17 %>% select(contains(c("tblack", "twhite"))) %>% correlation::correlation()
 d17 %>% select(att, att_7) %>% correlation::correlation()
 d17 %>% select(att_7)
@@ -372,18 +459,19 @@ d17 <- d17 %>% mutate(age = year - birthyear) %>%
          tp1,
          gender = birthsex,
          age,
+         occupation = occupation_self_002,
          race = raceomb_002,
          ethnicity = ethnicityomb,
          education = edu,
          religiosity = religionid,
+         religion = religion2014,
          con_lib_self_plc = politicalid_7,
          IAT_D_score = D_biep.White_Good_all,
          pref_whites = att_7,
          tblack = tblack_0to10, twhite = twhite_0to10,
-         att = att_7,
          all_of(scale_items_2017))
 
-dim(d17) # 23852   396
+dim(d17) # 23852   397
 
 
 # GT 2017 -----------------------------------------------------------------
@@ -422,10 +510,10 @@ d17$education <- factor(d17$education, levels = 1:14,
                                    "OtherAdvancedDegree"))
 
 d17$education <- fct_collapse(d17$education,
-                              Elementary = c("Elementary_School"),
-                              JrHighMiddle = c("JrHighMiddle_School"),
-                              SomeHigh = c("SomeHigh_School"),
-                              HighSchool = c("HighSchool_Grad"),
+                              UniBelow = c("Elementary_School",
+                                           "JrHighMiddle_School",
+                                           "SomeHigh_School",
+                                           "HighSchool_Grad"),
                               UniAbove = c("SomeCollege",
                                            "Associate_Degree",
                                            "BA",
@@ -438,8 +526,6 @@ d17$education <- fct_collapse(d17$education,
                                            "OtherAdvancedDegree"))
 
 table(d17$education)
-# Elementary JrHighMiddle     SomeHigh   HighSchool     UniAbove 
-#        135          606         2618         2555        15630 
 
 
 # race 2017 ---------------------------------------------------------------
@@ -477,11 +563,44 @@ d17$ethnicity <- factor(d17$ethnicity,
                                    "Unknown"))
 table(d17$ethnicity)
 
+# religion 2017 -----------------------------------------------------------
+
+table(d17$religion)
+d17$religion <- factor(d17$religion,
+                       levels = 1:8,
+                       labels = c("Buddist_Confucian_Shinto",
+                                  "Catholic_Orthodox",
+                                  "Protestant_Other",
+                                  "Hindu",
+                                  "Jewish",
+                                  "Muslim",
+                                  "Not_Religious",
+                                  "Other_Religion"))
+table(d17$religion)
+
+# employment 2017 ---------------------------------------------------------
+
+table(d17$occupation)
+
+d17 <- d17 %>% naniar::replace_with_na(replace = list(occupation = -99))
+d17$occupation <- as_factor(d17$occupation) %>% 
+  fct_collapse(Employed = c("00-",  "11-",  "13-",  "15-",  "17-",  "19-",
+                            "21-",  "23-",  "25-",  "27-",  "293",  "33-",
+                            "35-",  "37-",  "39-",  "41-",  "43-",  "45-",
+                            "47-",  "49-",  "51-",  "53-", "55-"),
+               Unemployed = c("999"))
+table(d17$occupation)
+
 
 # desc stats 2017 ---------------------------------------------------------
 
-d17 %>% select(tp1, age, gender, education, race, ethnicity,
-               tblack, twhite, att) %>% skimr::skim()
+d17 %>% select(tp1,
+               age, gender,
+               occupation,
+               education, race, ethnicity, occupation,
+               religion, religiosity,
+               con_lib_self_plc,
+               tblack, twhite, pref_whites) %>% skimr::skim()
 
 
 # save remove 2017 --------------------------------------------------------
@@ -497,6 +616,8 @@ d18 <- prep_wo_pipe("00_raw_data_sav_files/Race_IAT.public.2018.sav")
 colnames(d18)
 
 save(d18, file = "01_raw_data_RData_files/2018.RData")
+
+# load("01_raw_data_RData_files/2018.RData")
 
 d18 %>% select(contains(c("tblack", "twhite"))) %>% correlation::correlation()
 d18 %>% select(att, att_7) %>% correlation::correlation()
@@ -526,18 +647,19 @@ d18 <- d18 %>% mutate(age = year - birthyear) %>%
          tp1,
          gender = birthsex,
          age,
+         occupation = occupation_self_002,
          race = raceomb_002,
          ethnicity = ethnicityomb,
          education = edu,
          religiosity = religionid,
+         religion = religion2014,
          con_lib_self_plc = politicalid_7,
          IAT_D_score = D_biep.White_Good_all,
          pref_whites = att_7,
          tblack = tblacks_0to10, twhite = twhites_0to10,
-         att = att_7,
          all_of(scale_items_2018))
 
-dim(d18) # 23852   396
+dim(d18) # 21642   396
 
 
 # GT 2018 -----------------------------------------------------------------
@@ -576,10 +698,10 @@ d18$education <- factor(d18$education, levels = 1:14,
                                    "OtherAdvancedDegree"))
 
 d18$education <- fct_collapse(d18$education,
-                              Elementary = c("Elementary_School"),
-                              JrHighMiddle = c("JrHighMiddle_School"),
-                              SomeHigh = c("SomeHigh_School"),
-                              HighSchool = c("HighSchool_Grad"),
+                              UniBelow = c("Elementary_School",
+                                           "JrHighMiddle_School",
+                                           "SomeHigh_School",
+                                           "HighSchool_Grad"),
                               UniAbove = c("SomeCollege",
                                            "Associate_Degree",
                                            "BA",
@@ -592,10 +714,6 @@ d18$education <- fct_collapse(d18$education,
                                            "OtherAdvancedDegree"))
 
 table(d18$education)
-
-# Elementary JrHighMiddle     SomeHigh   HighSchool     UniAbove 
-#        144          584         2570         2217        14042 
-
 
 # race 2018 ---------------------------------------------------------------
 
@@ -632,11 +750,45 @@ d18$ethnicity <- factor(d18$ethnicity,
                                    "Unknown"))
 table(d18$ethnicity)
 
+# religion 2018 -----------------------------------------------------------
+
+table(d18$religion)
+d18$religion <- factor(d18$religion,
+                       levels = 1:8,
+                       labels = c("Buddist_Confucian_Shinto",
+                                  "Catholic_Orthodox",
+                                  "Protestant_Other",
+                                  "Hindu",
+                                  "Jewish",
+                                  "Muslim",
+                                  "Not_Religious",
+                                  "Other_Religion"))
+table(d18$religion)
+
+# employment 2018 ---------------------------------------------------------
+
+table(d18$occupation)
+
+d18 <- d18 %>% naniar::replace_with_na(replace = list(occupation = c(-99, -999)))
+d18$occupation <- as_factor(d18$occupation) %>% 
+  fct_collapse(Employed = c("00-",  "11-",  "13-",  "15-",  "17-",  "19-",
+                            "21-",  "23-",  "25-",  "27-",  "293",  "2931",
+                            "33-",
+                            "35-",  "37-",  "39-",  "41-",  "43-",  "45-",
+                            "47-",  "49-",  "51-",  "53-", "55-"),
+               Unemployed = c("9998", "999"))
+table(d18$occupation)
+
 
 # descriptive stats 2018 --------------------------------------------------
 
-d18 %>% select(tp1, age, gender, education, race, ethnicity,
-               tblack, twhite, att) %>% skimr::skim()
+d18 %>% select(tp1,
+               age, gender,
+               occupation,
+               education, race, ethnicity, occupation,
+               religion, religiosity,
+               con_lib_self_plc,
+               tblack, twhite, pref_whites) %>% skimr::skim()
 
 
 # save & remove 2018 ------------------------------------------------------
@@ -648,6 +800,8 @@ rm(d18); gc()
 # 2019 --------------------------------------------------------------------
 
 d19 <-  prep_wo_pipe("00_raw_data_sav_files/Race_IAT.public.2019.sav")
+
+# load("01_raw_data_RData_files/2019.RData")
 
 colnames(d19)
 
@@ -668,17 +822,19 @@ d19 <- d19 %>% mutate(age = year - birthyear) %>%
          tp1,
          gender = birthSex,
          age,
+         occupation = occupation_self_002,
          race = raceomb_002,
          ethnicity = ethnicityomb,
          education = edu,
          religiosity = religionid,
+         religion = religion2014,
          con_lib_self_plc = politicalid_7,
          IAT_D_score = D_biep.White_Good_all,
          pref_whites = att7,
          tblack = Tblack_0to10, twhite = Twhite_0to10,
          all_of(scale_items_2018))
 
-dim(d19) # 22369   394
+dim(d19) # 22369   396
 
 
 # GT 2019 -----------------------------------------------------------------
@@ -717,10 +873,10 @@ d19$education <- factor(d19$education, levels = 1:14,
                                    "OtherAdvancedDegree"))
 
 d19$education <- fct_collapse(d19$education,
-                              Elementary = c("Elementary_School"),
-                              JrHighMiddle = c("JrHighMiddle_School"),
-                              SomeHigh = c("SomeHigh_School"),
-                              HighSchool = c("HighSchool_Grad"),
+                              UniBelow = c("Elementary_School",
+                                           "JrHighMiddle_School",
+                                           "SomeHigh_School",
+                                           "HighSchool_Grad"),
                               UniAbove = c("SomeCollege",
                                            "Associate_Degree",
                                            "BA",
@@ -733,10 +889,6 @@ d19$education <- fct_collapse(d19$education,
                                            "OtherAdvancedDegree"))
 
 table(d19$education)
-
-# Elementary JrHighMiddle     SomeHigh   HighSchool     UniAbove 
-#        128          618         2769         2334        14310
-
 
 # race 2019 ---------------------------------------------------------------
 
@@ -773,10 +925,44 @@ d19$ethnicity <- factor(d19$ethnicity,
                                    "Unknown"))
 table(d19$ethnicity)
 
+# religion 2019 -----------------------------------------------------------
+
+table(d19$religion)
+d19$religion <- factor(d19$religion,
+                       levels = 1:8,
+                       labels = c("Buddist_Confucian_Shinto",
+                                  "Catholic_Orthodox",
+                                  "Protestant_Other",
+                                  "Hindu",
+                                  "Jewish",
+                                  "Muslim",
+                                  "Not_Religious",
+                                  "Other_Religion"))
+table(d19$religion)
+
+
+# employment 2019 ---------------------------------------------------------
+
+table(d19$occupation)
+
+d19$occupation <- as_factor(d19$occupation) %>% 
+  fct_collapse(Employed = c("00-",  "11-",  "13-",  "15-",  "17-",  "19-",
+                            "21-",  "23-",  "25-",  "27-",  "2931",
+                            "33-",
+                            "35-",  "37-",  "39-",  "41-",  "43-",  "45-",
+                            "47-",  "49-",  "51-",  "53-", "55-"),
+               Unemployed = c("9998"))
+table(d19$occupation)
+
 
 # desc stats 2019 ---------------------------------------------------------
 
-d19 %>% select(tp1, age, gender, education, race, ethnicity,
+d19 %>% select(tp1,
+               age, gender,
+               occupation,
+               education, race, ethnicity, occupation,
+               religion, religiosity,
+               con_lib_self_plc,
                tblack, twhite, pref_whites) %>% skimr::skim()
 
 
@@ -789,6 +975,8 @@ rm(d19); gc()
 # 2020 --------------------------------------------------------------------
 
 d20 <- prep_wo_pipe("00_raw_data_sav_files/Race.IAT.public.2020.sav")
+
+# load("01_raw_data_RData_files/2020.RData")
 
 colnames(d20)
 
@@ -806,17 +994,19 @@ d20 <- d20 %>% mutate(age = year - birthyear) %>%
          tp1,
          gender = birthSex,
          age,
+         occupation = occupation_self_002,
          race = raceomb002,
          ethnicity = ethnicityomb,
          education = edu,
          religiosity = religionid,
+         religion = religion2014,
          con_lib_self_plc = politicalid_7,
          IAT_D_score = D_biep.White_Good_all,
          pref_whites = att7,
          tblack = Tblack_0to10, twhite = Twhite_0to10,
          all_of(scale_items_2018))
 
-dim(d20) # 44379   394
+dim(d20) # 44379   396
 
 
 # GT 2020 -----------------------------------------------------------------
@@ -858,10 +1048,10 @@ d20$education <- factor(d20$education, levels = 1:14,
                                    "OtherAdvancedDegree"))
 
 d20$education <- fct_collapse(d20$education,
-                              Elementary = c("Elementary_School"),
-                              JrHighMiddle = c("JrHighMiddle_School"),
-                              SomeHigh = c("SomeHigh_School"),
-                              HighSchool = c("HighSchool_Grad"),
+                              UniBelow = c("Elementary_School",
+                                           "JrHighMiddle_School",
+                                           "SomeHigh_School",
+                                           "HighSchool_Grad"),
                               UniAbove = c("SomeCollege",
                                            "Associate_Degree",
                                            "BA",
@@ -912,10 +1102,44 @@ d20$ethnicity <- factor(d20$ethnicity,
                                    "Unknown"))
 table(d20$ethnicity)
 
+# religion 2020 -----------------------------------------------------------
+
+table(d20$religion)
+d20$religion <- factor(d20$religion,
+                       levels = 1:8,
+                       labels = c("Buddist_Confucian_Shinto",
+                                  "Catholic_Orthodox",
+                                  "Protestant_Other",
+                                  "Hindu",
+                                  "Jewish",
+                                  "Muslim",
+                                  "Not_Religious",
+                                  "Other_Religion"))
+table(d20$religion)
+
+
+# employment 2020 ---------------------------------------------------------
+
+table(d20$occupation)
+
+d20$occupation <- as_factor(d20$occupation) %>% 
+  fct_collapse(Employed = c("00-",  "11-",  "13-",  "15-",  "17-",  "19-",
+                            "21-",  "23-",  "25-",  "27-",  "2931",
+                            "33-",
+                            "35-",  "37-",  "39-",  "41-",  "43-",  "45-",
+                            "47-",  "49-",  "51-",  "53-", "55-"),
+               Unemployed = c("9998"))
+table(d20$occupation)
+
 
 # desc stats 2020 ---------------------------------------------------------
 
-d20 %>% select(tp1, age, gender, education, race, ethnicity,
+d20 %>% select(tp1,
+               age, gender,
+               occupation,
+               education, race, ethnicity, occupation,
+               religion, religiosity,
+               con_lib_self_plc,
                tblack, twhite, pref_whites) %>% skimr::skim()
 
 # save & remove 2020 ------------------------------------------------------
@@ -930,6 +1154,8 @@ d21 <- prep_wo_pipe("00_raw_data_sav_files/Race IAT.public.2021.sav")
 
 colnames(d21)
 
+# load("01_raw_data_RData_files/2021.RData")
+
 save(d21, file = "01_raw_data_RData_files/2021.RData")
 
 d21 %>% select(contains(c("tblack", "twhite"))) %>% correlation::correlation()
@@ -943,17 +1169,19 @@ d21 <- d21 %>% mutate(age = year - birthyear) %>%
          tp1,
          gender = birthSex,
          age,
+         occupation = occupation_self_002,
          race = raceomb002,
          ethnicity = ethnicityomb,
          education = edu,
          religiosity = religionid,
+         religion = religion2014,
          con_lib_self_plc = politicalid_7,
          IAT_D_score = D_biep.White_Good_all,
          pref_whites = att7,
          tblack = Tblack_0to10, twhite = Twhite_0to10,
          all_of(scale_items_2018))
 
-dim(d21) # 35208   394
+dim(d21) # 35208   396
 
 # GT 2021 -----------------------------------------------------------------
 
@@ -991,10 +1219,10 @@ d21$education <- factor(d21$education, levels = 1:14,
                                    "OtherAdvancedDegree"))
 
 d21$education <- fct_collapse(d21$education,
-                              Elementary = c("Elementary_School"),
-                              JrHighMiddle = c("JrHighMiddle_School"),
-                              SomeHigh = c("SomeHigh_School"),
-                              HighSchool = c("HighSchool_Grad"),
+                              UniBelow = c("Elementary_School",
+                                           "JrHighMiddle_School",
+                                           "SomeHigh_School",
+                                           "HighSchool_Grad"),
                               UniAbove = c("SomeCollege",
                                            "Associate_Degree",
                                            "BA",
@@ -1007,9 +1235,6 @@ d21$education <- fct_collapse(d21$education,
                                            "OtherAdvancedDegree"))
 
 table(d21$education)
-
-# Elementary JrHighMiddle     SomeHigh   HighSchool     UniAbove 
-#        158          699         2748         3312        24786 
 
 # race 2021 ---------------------------------------------------------------
 
@@ -1037,7 +1262,6 @@ table(d21$race)
 
 # ethnicity 2021 ----------------------------------------------------------
 
-
 table(d21$ethnicity)
 d21$ethnicity <- factor(d21$ethnicity,
                         levels = 1:3,
@@ -1046,9 +1270,45 @@ d21$ethnicity <- factor(d21$ethnicity,
                                    "Unknown"))
 table(d21$ethnicity)
 
-# desc stats 2020 ---------------------------------------------------------
+# religion 2021 -----------------------------------------------------------
 
-d21 %>% select(tp1, age, gender, education, race, ethnicity,
+table(d21$religion)
+d21$religion <- factor(d21$religion,
+                       levels = 1:8,
+                       labels = c("Buddist_Confucian_Shinto",
+                                  "Catholic_Orthodox",
+                                  "Protestant_Other",
+                                  "Hindu",
+                                  "Jewish",
+                                  "Muslim",
+                                  "Not_Religious",
+                                  "Other_Religion"))
+table(d21$religion)
+
+# employment 2021 ---------------------------------------------------------
+
+table(d21$occupation)
+
+d21 <- d21 %>% naniar::replace_with_na(replace = list(occupation = c(-999)))
+
+d21$occupation <- as_factor(d21$occupation) %>% 
+  fct_collapse(Employed = c("00-",  "11-",  "13-",  "15-",  "17-",  "19-",
+                            "21-",  "23-",  "25-",  "27-",  "2931",
+                            "33-",
+                            "35-",  "37-",  "39-",  "41-",  "43-",  "45-",
+                            "47-",  "49-",  "51-",  "53-", "55-"),
+               Unemployed = c("9998"))
+table(d21$occupation)
+
+
+# desc stats 2021 ---------------------------------------------------------
+
+d21 %>% select(tp1,
+               age, gender,
+               occupation,
+               education, race, ethnicity, occupation,
+               religion, religiosity,
+               con_lib_self_plc,
                tblack, twhite, pref_whites) %>% skimr::skim()
 
 
@@ -1062,18 +1322,39 @@ gc()
 
 # merge DFs ---------------------------------------------------------------
 load("df/2015.RData") 
-d15 <- d15 %>% select(tp1, age, gender, education, race, ethnicity)
+d15 <- d15 %>% select(tp1,
+                      age, gender,
+                      education, race, ethnicity, occupation,
+                      religion, religiosity)
 load("df/2016.RData") 
-d16 <- d16 %>% select(tp1, age, gender, education, race, ethnicity)
+d16 <- d16 %>% select(tp1,
+                      age, gender,
+                      education, race, ethnicity, occupation,
+                      religion, religiosity)
 load("df/2017.RData") 
-d17 <- d17 %>% select(tp1, age, gender, education, race, ethnicity)
+d17 <- d17 %>% select(tp1,
+                      age, gender,
+                      education, race, ethnicity, occupation,
+                      religion, religiosity)
 load("df/2018.RData") 
-d18 <- d18 %>% select(tp1, age, gender, education, race, ethnicity)
+d18 <- d18 %>% select(tp1,
+                      age, gender,
+                      education, race, ethnicity, occupation,
+                      religion, religiosity)
 load("df/2019.RData") 
-d19 <- d19 %>% select(tp1, age, gender, education, race, ethnicity)
+d19 <- d19 %>% select(tp1,
+                      age, gender,
+                      education, race, ethnicity, occupation,
+                      religion, religiosity)
 load("df/2020.RData") 
-d20 <- d20 %>% select(tp1, age, gender, education, race, ethnicity)
-d21 <- d21 %>% select(tp1, age, gender, education, race, ethnicity)
+d20 <- d20 %>% select(tp1,
+                      age, gender,
+                      education, race, ethnicity, occupation,
+                      religion, religiosity)
+d21 <- d21 %>% select(tp1,
+                      age, gender,
+                      education, race, ethnicity, occupation,
+                      religion, religiosity)
 
 library(vctrs)
 df <- vec_rbind(d15, d16, d17, d18, d19, d20, d21)
